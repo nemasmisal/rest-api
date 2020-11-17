@@ -11,6 +11,18 @@ const userSchema = new Schema({
         type: String,
         required: true,
         minlength: 6
+    },
+    basket: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Article'
+    }],
+    favorites: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Article'
+    }],
+    admin: {
+        type: Boolean,
+        required: true
     }
 });
 

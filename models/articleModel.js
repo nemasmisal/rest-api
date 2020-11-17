@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const Schema = mongoose.Schema;
 
-const courseSchema = new Schema({
+const articleSchema = new Schema({
     title: {
         type: String,
         required: true
@@ -11,12 +11,12 @@ const courseSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
-    subscribers: [{
+    likes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     }]
 }, { timestamps: { createdAt: 'created_at' } });
 
-const Course = mongoose.model('Course', courseSchema);
+const Article = mongoose.model('Article', articleSchema);
 
-module.exports = Course;
+module.exports = Article;
