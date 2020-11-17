@@ -2,8 +2,7 @@ const Article = require('../models/articleModel');
 
 module.exports = {
     async createArticle(req, res, next) {
-        const { title, userId } = req.body;
-        const article = new Article({ title, creator: userId });
+        const article = new Article(req.body);
         await article.save((err, doc) => {
             if (err) { return res.status(507).send('The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.') }
             return res.status(201).send(doc);
