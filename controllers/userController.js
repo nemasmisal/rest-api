@@ -5,9 +5,9 @@ const config = require('../config/config');
 module.exports = {
   async postRegister(req, res, next) {
     try {
-      const { username, password } = req.body;
+      const { username, password, admin } = req.body;
       const hash = await bcrypt.hash(password, config.saltRounds)
-      const user = new User({ username, password: hash });
+      const user = new User({ username, password: hash, admin });
       user.save();
       return res.status(201).send(user);
     } catch (error) { next(error); }
