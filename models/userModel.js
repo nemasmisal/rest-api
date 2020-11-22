@@ -19,11 +19,7 @@ const userSchema = new Schema({
     favorites: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Article'
-    }],
-    admin: {
-        type: Boolean,
-        required: true
-    }
+    }]
 });
 
 const User = mongoose.model('User', userSchema);

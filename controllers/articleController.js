@@ -15,6 +15,13 @@ module.exports = {
             return res.status(202).send({ msg: 'Article successfully updated.', doc });
         })
     },
+    async getArticleByCategory(req, res, next) {
+        const articleCategory = req.url.slice(1)
+        await Article.find({category: articleCategory}, (err, doc) => {
+            if (err) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }) }
+            return res.send(doc);
+        });
+    },
     async getArticleById(req, res, next) {
         const articleId = req.params.id
         await Article.findById(articleId, (err, doc) => {
