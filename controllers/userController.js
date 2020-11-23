@@ -23,7 +23,7 @@ module.exports = {
       user.save();
       const token = await createToken(user, password, next);
       setCookie(token, res);
-      return res.status(201).send(user);
+      return res.status(201).send({ username: user.username, id: user._id, favorites: user.favorites, basket: user.basket });
     } catch (error) { next(error); }
   },
 
@@ -37,14 +37,14 @@ module.exports = {
       });
       if (!token) { return; }
       setCookie(token, res);
-      return res.status(200).send(user);
+      return res.status(200).send({ username: user.username, id: user._id, favorites: user.favorites, basket: user.basket, admin: false });
     } catch (error) { next(error); }
   },
   getLogout(req, res) {
     res.clearCookie(config.authCookieName);
     return res.status(204).end();
   }
-} 
+}
 
 
 
