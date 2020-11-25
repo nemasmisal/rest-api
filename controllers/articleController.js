@@ -17,10 +17,17 @@ module.exports = {
     },
     async getArticleByCategory(req, res, next) {
         const articleCategory = req.url.slice(1)
-        await Article.find({category: articleCategory}, (err, doc) => {
+        await Article.find({ category: articleCategory }, (err, doc) => {
             if (err) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }) }
             return res.send(doc);
         });
+    },
+    async addLikeToArticle(req, res, next) {
+        const { articleId, userId } = req.body;
+        await Article.findByIdAndUpdate(articleId, { $push: { likes: userId } }, (err, article) => {
+            if (err) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }) }
+            return res.status(202).send({ msg: 'Article successfully liked' });
+        })
     },
     async getArticleById(req, res, next) {
         const articleId = req.params.id

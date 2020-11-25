@@ -19,6 +19,10 @@ const userSchema = new Schema({
     favorites: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Article'
+    }],
+    orders: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Article'
     }]
 });
 
