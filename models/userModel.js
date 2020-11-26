@@ -12,6 +12,10 @@ const userSchema = new Schema({
         required: true,
         minlength: 6
     },
+    admin: {
+        type: Boolean,
+        default: false
+    },
     basket: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Article'

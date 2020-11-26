@@ -7,6 +7,10 @@ const orderSchema = new Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    totalAmount: {
+        type: Number,
+        required: true
+    },
     articles: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Article'

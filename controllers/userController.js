@@ -1,4 +1,5 @@
 const User = require('../models/userModel');
+const Order = require('../models/orderModel');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
@@ -23,7 +24,7 @@ module.exports = {
       user.save();
       const token = await createToken(user, password, next);
       setCookie(token, res);
-      return res.status(201).send({ username: user.username, id: user._id, favorites: user.favorites, basket: user.basket });
+      return res.status(201).send({user });
     } catch (error) { next(error); }
   },
   async postLogin(req, res, next) {
@@ -36,12 +37,12 @@ module.exports = {
       });
       if (!token) { return; }
       setCookie(token, res);
-      return res.status(200).send({ username: user.username, id: user._id, favorites: user.favorites, basket: user.basket, admin: false });
+      return res.status(200).send({ username: user.username, _id: user._id, favorites: user.favorites, basket: user.basket, admin: user.admin });
     } catch (error) { next(error); }
   },
   getLogout(req, res) {
     res.clearCookie(config.authCookieName);
-    return res.status(204).send({ msg: 'successfully logged out' });
+    return res.status(204).send();
   },
   async addToFavorites(req, res, next) {
     const { articleId, userId } = req.body;
@@ -71,8 +72,10 @@ module.exports = {
       const { userId } = req.user;
       const user = await User.findByIdAndUpdate(userId, { $set: { basket: [] } }).populate('basket').lean();
       if (!user) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
-      const admin = await User.findByIdAndUpdate(config.adminId, { $push: { orders: user.basket } })
-      if (admin) { return res.status(202).send({ msg: 'Order was placed successfuly' }); }
+      const totalAmount = user.basket.reduce((acc, curr) => acc + Number(curr.price), 0)
+      const order = new Order({ creator: userId, articles: user.basket, totalAmount });
+      order.save();
+      return res.status(202).send({ msg: 'Order was placed successfuly' });
     } catch (error) {
       return res.status(400).send({ msg: 'User with provided ID do not exist.' })
     }
