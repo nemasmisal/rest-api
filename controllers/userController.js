@@ -4,9 +4,9 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 
-async function createToken(user, providedPassword, errorCB) {
+async function createToken(user, providedPassword) {
   const match = await bcrypt.compare(providedPassword, user.password);
-  if (!match) { return errorCB('Username or password don`t match!') };
+  if (!match) { return ({ error: 'Username or password don`t match!' }) };
   const token = jwt.sign({ userId: user._id, username: user.username }, config.jwtSecret);
   return token;
 }
@@ -21,42 +21,48 @@ module.exports = {
       const { username, password } = req.body;
       const hash = await bcrypt.hash(password, config.saltRounds)
       const user = new User({ username, password: hash });
-      user.save();
+      await user.save();
       const token = await createToken(user, password, next);
       setCookie(token, res);
-      return res.status(201).send({user });
-    } catch (error) { next(error); }
+      return res.status(201).send({ username: user.username, _id: user._id, favorites: user.favorites, basket: user.basket, admin: user.admin  });
+    } catch (error) { res.status(507).send({ msg: error }); }
   },
   async postLogin(req, res, next) {
     try {
       const { username, password } = req.body;
       const user = await User.findOne({ username });
       if (!user) { return res.status(401).send('Wrong Username or Password!'); }
-      const token = await createToken(user, password, err => {
-        if (err) { return res.status(401).send(err); }
-      });
-      if (!token) { return; }
+      const token = await createToken(user, password);
+      if (token.error) { return res.status(401).send(token); }
       setCookie(token, res);
       return res.status(200).send({ username: user.username, _id: user._id, favorites: user.favorites, basket: user.basket, admin: user.admin });
-    } catch (error) { next(error); }
+    } catch (error) { res.status(507).send({ msg: error }); }
   },
   getLogout(req, res) {
     res.clearCookie(config.authCookieName);
     return res.status(204).send();
   },
   async addToFavorites(req, res, next) {
-    const { articleId, userId } = req.body;
-    await User.findByIdAndUpdate(userId, { $push: { favorites: articleId } }, (err, user) => {
-      if (err) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
+    try {
+      const { articleId, userId } = req.body;
+      await User.findByIdAndUpdate(userId, { $push: { favorites: articleId } });
       return res.status(202).send({ msg: 'Article successfully added to favorites.' });
-    })
+    } catch (error) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
   },
   async addToBasket(req, res, next) {
-    const { articleId, userId } = req.body;
-    await User.findByIdAndUpdate(userId, { $push: { basket: articleId } }, (err, user) => {
-      if (err) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
+    try {
+      const { articleId, userId } = req.body;
+      await User.findByIdAndUpdate(userId, { $push: { basket: articleId } })
       return res.status(202).send({ msg: 'Article successfully added to basket.' });
-    })
+    } catch (error) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
+  },
+  async removeFromBasket(req, res, next) {
+    try {
+      const articleId = req.body.id;
+      const { userId } = req.user;
+      await User.findOneAndUpdate({ _id: userId }, { $pull: { basket: articleId } })
+      return res.status(202).send({ msg: 'Article successfully removed from basket.' });
+    } catch (error) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
   },
   async getProfile(req, res, next) {
     try {

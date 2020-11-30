@@ -13,7 +13,7 @@ async function articleValidator(req, res, next) {
 }
 
 async function isCreator(req, res, next) {
-    const { userId } = req.body;
+    const { userId } = req.user;
     const articleId = req.params.id
     if (!userId || !articleId) { return res.status(401).send({ msg: 'Providing credentials is required.' }); }
     await Article.findById(articleId, (err, article) => {

@@ -6,7 +6,7 @@ const config = {
         db: '',
         authCookieName: '',
         authHeaderName: '',
-        saltRounds: ,
+        saltRounds: 9,
         jwtSecret: '',
         adminId: ''
     },

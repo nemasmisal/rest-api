@@ -24,7 +24,7 @@ async function registerValidator(req, res, next) {
 }
 
 async function existingUser(req, res, next) {
-    const { userId } = req.body;
+    const { userId } = req.user;
     if (!userId) { return res.status(401).send({ msg: 'Provided user credentials are required.' }) }
     const existingUser = await User.exists({ _id: userId })
     if (!existingUser) { return res.status(401).send({ msg: 'Provided user credentials are required.' }); }

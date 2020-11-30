@@ -2,51 +2,60 @@ const Article = require('../models/articleModel');
 
 module.exports = {
     async createArticle(req, res, next) {
-        const article = new Article(req.body);
-        await article.save((err, doc) => {
-            if (err) { return res.status(507).send('The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.') }
-            return res.status(201).send(doc);
-        })
+        try {
+            const article = new Article(req.body);
+            await article.save();
+            return res.status(201).send(article);
+        } catch (error) { return res.status(507).send({ msg: error }); }
     },
     async editArticle(req, res, next) {
-        const articleId = req.params.id
-        await Article.findByIdAndUpdate(articleId, req.body, (err, doc) => {
-            if (err) { return res.status(507).send('The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.') }
-            return res.status(202).send({ msg: 'Article successfully updated.', doc });
-        })
+        try {
+            const articleId = req.params.id
+            const article = await Article.findByIdAndUpdate(articleId, req.body);
+            return res.status(202).send({ msg: 'Article successfully updated.', article });
+        } catch (error) { return res.status(507).send(error); }
     },
     async getArticleByCategory(req, res, next) {
-        const articleCategory = req.url.slice(1)
-        await Article.find({ category: articleCategory }, (err, doc) => {
-            if (err) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }) }
-            return res.send(doc);
-        });
+        try {
+            const articleCategory = req.url.slice(1)
+            const article = await Article.find({ category: articleCategory });
+            return res.send(article);
+        } catch (error) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }); }
     },
     async addLikeToArticle(req, res, next) {
-        const { articleId, userId } = req.body;
-        await Article.findByIdAndUpdate(articleId, { $push: { likes: userId } }, (err, article) => {
-            if (err) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }) }
+        try {
+            const { articleId, userId } = req.body;
+            await Article.findByIdAndUpdate(articleId, { $push: { likes: userId } })
             return res.status(202).send({ msg: 'Article successfully liked' });
-        })
+        } catch (error) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }); }
     },
     async getArticleById(req, res, next) {
-        const articleId = req.params.id
-        await Article.findById(articleId, (err, doc) => {
-            if (err) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }) }
-            return res.send(doc);
-        });
+        try {
+            const articleId = req.params.id
+            const article = await Article.findById(articleId);
+            return res.send(article);
+        } catch (error) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }); }
     },
     async getAllArticles(req, res, next) {
-        await Article.find({}, (err, articles) => {
-            if (err) { return res.status(507).send('The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.') }
+        try {
+            const articles = await Article.find({});
             return res.send(articles);
-        });
+        } catch (error) { return res.status(507).send({ msg: error }); }
     },
     async removeArticle(req, res, next) {
-        const articleId = req.params.id;
-        await Article.findByIdAndDelete(articleId, (err, doc) => {
-            if (err) { return res.status(400).send({ msg: 'Article with provided ID do not exist' }) }
-            return res.status(202).send({ msg: 'Article successfully deleted.', doc })
-        });
+        try {
+            const articleId = req.params.id;
+            const removedArticle = await Article.findByIdAndDelete(articleId);
+            return res.status(202).send({ msg: 'Article successfully deleted.', removeArticle })
+        } catch (error) { return res.status(400).send({ msg: 'Article with provided ID do not exist' }); }
+    },
+    async getNewestArticles(req, res, next) {
+        try {
+            const phone = await Article.findOne({ category: 'phones' }).sort({ created_at: -1 }).lean();
+            const phoneCase = await Article.findOne({ category: 'cases' }).sort({ created_at: -1 }).lean();
+            const screenProtector = await Article.findOne({ category: 'screenProtectors' }).sort({ created_at: -1 }).lean();
+            const accessory = await Article.findOne({ category: 'accessories' }).sort({ created_at: -1 }).lean();
+            res.send({ phone, case: phoneCase, screenProtector, accessory });
+        } catch (error) { res.status(507).send({ msg: error }); }
     }
 }
