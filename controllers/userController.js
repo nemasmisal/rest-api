@@ -24,7 +24,7 @@ module.exports = {
       await user.save();
       const token = await createToken(user, password, next);
       setCookie(token, res);
-      return res.status(201).send({ username: user.username, _id: user._id, favorites: user.favorites, basket: user.basket, admin: user.admin  });
+      return res.status(201).send({ username: user.username, _id: user._id, admin: user.admin });
     } catch (error) { res.status(507).send({ msg: error }); }
   },
   async postLogin(req, res, next) {
@@ -35,7 +35,7 @@ module.exports = {
       const token = await createToken(user, password);
       if (token.error) { return res.status(401).send(token); }
       setCookie(token, res);
-      return res.status(200).send({ username: user.username, _id: user._id, favorites: user.favorites, basket: user.basket, admin: user.admin });
+      return res.status(200).send({ username: user.username, _id: user._id, admin: user.admin });
     } catch (error) { res.status(507).send({ msg: error }); }
   },
   getLogout(req, res) {
@@ -47,6 +47,20 @@ module.exports = {
       const { articleId, userId } = req.body;
       await User.findByIdAndUpdate(userId, { $push: { favorites: articleId } });
       return res.status(202).send({ msg: 'Article successfully added to favorites.' });
+    } catch (error) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
+  },
+  async getBasket(req, res, next) {
+    try {
+      const { userId } = req.user;
+      const user = await User.findById(userId).populate('basket').lean();
+      return res.send(user.basket);
+    } catch (error) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
+  },
+  async getFavorites(req, res, next) {
+    try {
+      const { userId } = req.user;
+      const user = await User.findById(userId).populate('favorites').lean();
+      return res.send(user.favorites);
     } catch (error) { return res.status(400).send({ msg: 'User with provided ID do not exist.' }) }
   },
   async addToBasket(req, res, next) {
