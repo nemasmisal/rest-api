@@ -117,7 +117,7 @@ module.exports = {
     try {
       const users = await User.find({}).lean();
       return res.send(users);
-    } catch (error) { res.send(err); }
+    } catch (error) { return res.status(507).send({ msg: 'The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.' }); }
   },
   async updateUser(req, res, next) {
     try {
@@ -125,11 +125,11 @@ module.exports = {
       if (user.password) {
         user.hash = await bcrypt.hash(user.password, config.saltRounds)
         await User.findByIdAndUpdate(user.userId, { username: user.username, password: user.hash, admin: user.admin === 'true' ? true : false })
-        return res.status(202).send({msg: 'Successfully updated user data.'});
+        return res.status(202).send({ msg: 'Successfully updated user data.' });
       }
       await User.findByIdAndUpdate(user.userId, { username: user.username, admin: user.admin === 'true' ? true : false });
-      return res.status(202).send({msg: 'Successfully updated user data.'});
+      return res.status(202).send({ msg: 'Successfully updated user data.' });
 
-    } catch (error) { res.send(error); }
+    } catch (error) { return res.status(507).send({ msg: 'The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.' }); }
   }
 }
