@@ -19,8 +19,8 @@ module.exports = {
   async postRegister(req, res, next) {
     try {
       const { username, password } = req.body;
-      const existingUser = await User.findOne({ username });
-      if (existingUser) { return res.status(409).send({ msg: 'Someone else is using that name already, please choose better one :)' }) }
+      const existingUser = User.find({ username });
+      if (existingUser) { return res.status(409).send({msg: 'Someone else is using that name already, please choose better one :)'})}
       const hash = await bcrypt.hash(password, config.saltRounds)
       const user = new User({ username, password: hash });
       await user.save();
@@ -35,7 +35,7 @@ module.exports = {
       const user = await User.findOne({ username });
       if (!user) { return res.status(401).send({ msg: 'Wrong Username or Password!' }); }
       const token = await createToken(user, password);
-      if (token.msg) { return res.status(401).send(token); }
+      if (token.error) { return res.status(401).send(token); }
       setCookie(token, res);
       return res.status(200).send({ username: user.username, _id: user._id, admin: user.admin });
     } catch (error) { res.status(507).send({ msg: error }); }
@@ -112,24 +112,5 @@ module.exports = {
     } catch (error) {
       return res.status(400).send({ msg: 'User with provided ID do not exist.' })
     }
-  },
-  async getUsers(req, res, next) {
-    try {
-      const users = await User.find({}).lean();
-      return res.send(users);
-    } catch (error) { res.send(err); }
-  },
-  async updateUser(req, res, next) {
-    try {
-      const user = req.body;
-      if (user.password) {
-        user.hash = await bcrypt.hash(user.password, config.saltRounds)
-        await User.findByIdAndUpdate(user.userId, { username: user.username, password: user.hash, admin: user.admin === 'true' ? true : false })
-        return res.status(202).send({msg: 'Successfully updated user data.'});
-      }
-      await User.findByIdAndUpdate(user.userId, { username: user.username, admin: user.admin === 'true' ? true : false });
-      return res.status(202).send({msg: 'Successfully updated user data.'});
-
-    } catch (error) { res.send(error); }
   }
 }

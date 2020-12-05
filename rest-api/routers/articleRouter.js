@@ -12,6 +12,6 @@ router.get('/screenProtectors', articleController.getArticleByCategory);
 router.get('/newest', articleController.getNewestArticles);
 router.get('/:id', articleController.getArticleById);
 router.post('/like', articleController.addLikeToArticle);
-router.post('/edit/:id', existingUser, articleController.editArticle);
+router.post('/edit/:id', existingUser, isCreator, articleController.editArticle);
 router.delete('/remove/:id', articleController.removeArticle);
 module.exports = router

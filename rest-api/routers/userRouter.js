@@ -13,7 +13,5 @@ router.post('/basket/add', userController.addToBasket);
 router.post('/basket/remove', userController.removeFromBasket);
 router.get('/profile/:id', userController.getProfile);
 router.get('/order', userController.placeOrder);
-router.get('/all', userController.getUsers);
-router.post('/update', userController.updateUser);
 
 module.exports = router;

@@ -25,7 +25,7 @@ module.exports = {
     async addLikeToArticle(req, res, next) {
         try {
             const { articleId } = req.body;
-            const { userId } = req.user;
+            const { userId } = req.body;
             await Article.findByIdAndUpdate(articleId, { $push: { likes: userId } })
             return res.status(202).send({ msg: 'Article successfully liked' });
         } catch (error) { return res.status(400).send({ msg: 'Article with provided ID do not exist.' }); }
@@ -46,8 +46,8 @@ module.exports = {
     async removeArticle(req, res, next) {
         try {
             const articleId = req.params.id;
-            await Article.findByIdAndDelete(articleId);
-            return res.status(202).send({ msg: 'Article successfully deleted.'})
+            const removedArticle = await Article.findByIdAndDelete(articleId);
+            return res.status(202).send({ msg: 'Article successfully deleted.', removeArticle })
         } catch (error) { return res.status(400).send({ msg: 'Article with provided ID do not exist' }); }
     },
     async getNewestArticles(req, res, next) {
