@@ -15,5 +15,6 @@ router.get('/profile/:id', userController.getProfile);
 router.get('/order', userController.placeOrder);
 router.get('/all', userController.getUsers);
 router.post('/update', userController.updateUser);
+router.get('/checkAuth', userController.checkAuth);
 
 module.exports = router;

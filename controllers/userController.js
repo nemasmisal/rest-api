@@ -100,6 +100,16 @@ module.exports = {
       return res.status(400).send({ msg: 'User with provided ID do not exist.' })
     }
   },
+  async checkAuth(req, res, next) {
+    try {
+      const { userId } = req.user;
+      if (!userId) { return res.status(202).send(); }
+      const user = await User.findById(userId).populate(['basket', 'favorites']).lean();
+      return res.send({ username: user.username, _id: user._id, admin: user.admin })
+    } catch (error) {
+      return res.status(204).send();
+    }
+  },
   async placeOrder(req, res, next) {
     try {
       const { userId } = req.user;

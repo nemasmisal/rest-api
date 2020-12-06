@@ -7,8 +7,7 @@ const config = {
         authCookieName: '',
         authHeaderName: '',
         saltRounds: 0,
-        jwtSecret: '',
-        adminId: ''
+        jwtSecret: ''
     },
     production: {}
 };
