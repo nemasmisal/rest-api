@@ -31,8 +31,6 @@ async function existingUser(req, res, next) {
     return next();
 }
 
-
-
 module.exports = {
     registerValidator,
     existingUser
