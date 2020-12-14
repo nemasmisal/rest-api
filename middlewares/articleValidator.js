@@ -1,31 +1,48 @@
-const Article = require('../models/articleModel');
+const { body } = require('express-validator');
 
 const inputReqs = {
-    titleLength: 4
+    nameMinLength: 5,
+    nameMaxLength: 20,
+    namePattern: /[A-Za-z0-9 ]+/,
+    category: ['phones', 'cases', 'screenprotectors', 'accessories'],
+    descriptionMinLength: 20,
+    price: 1,
+    quantity: 1,
+    imageURLPattern: /^(https?:\/\/).+/
 }
 
-async function articleValidator(req, res, next) {
-    const { title } = req.body;
-    if (title.length < inputReqs.titleLength) { return res.status(400).send({ msg: `Title length must be at least ${inputReqs.titleLength} symbols` }); }
-    const existingArticle = await Article.exists({ title });
-    if (existingArticle) { return res.status(409).send({ msg: 'This article is already exist, please create different one or join the existing one' }); }
-    return next();
-}
+const nameValidator = [
+    body('name').isLength({ min: inputReqs.nameMinLength, max: inputReqs.nameMaxLength })
+        .withMessage(`Name must be at least ${inputReqs.nameMinLength} but not more then ${inputReqs.nameMaxLength} characters.`),
+    body('name').matches(inputReqs.namePattern).withMessage('Name must contains only english letters and/or numbers.')
+]
 
-async function isCreator(req, res, next) {
-    const { userId } = req.user;
-    const articleId = req.params.id
-    if (!userId || !articleId) { return res.status(401).send({ msg: 'Providing credentials is required.' }); }
-    await Article.findById(articleId, (err, article) => {
-        if (err) {
-            return res.status(404).send({ msg: 'Article with provided ID do not exist' });
-        }
-        if (article.creator.toString() !== userId) { return res.status(401).send({ msg: "Only creator of the article can modify it." }); }
-        return next();
-    });
-}
+const categoryValidator = [
+    body('category').isIn(inputReqs.category).withMessage(`Wrong category, please choose one of ${inputReqs.category.join(', ')}.`)
+]
+
+const desctriptionValidator = [
+    body('description').isLength({ min: inputReqs.descriptionMinLength })
+        .withMessage(`Descriptions must be at least ${inputReqs.descriptionMinLength} characters long.`)
+]
+
+const priceValidator = [
+    body('price').isInt({ min: inputReqs.price }).withMessage('Price must be positive number.')
+]
+
+const quantityValidator = [
+    body('quantity').isInt({ min: inputReqs.quantity }).withMessage('Quantity must be positive number.')
+]
+
+const imageURLValidator = [
+    body('imageURL').matches(inputReqs.imageURLPattern).withMessage('Image URL must be valid. Example : http://... or https://...')
+]
 
 module.exports = {
-    articleValidator,
-    isCreator
+    nameValidator,
+    categoryValidator,
+    desctriptionValidator,
+    priceValidator,
+    quantityValidator,
+    imageURLValidator
 }
