@@ -1,21 +1,17 @@
 const router = require('express').Router();
 const userController = require('../controllers/userController');
-const checkForErrors = require('../middlewares/checkForErrors');
-const { passwordValidator, usernameValidator } = require('../middlewares/userValidator');
+const isAdmin = require('../middlewares/adminValidator');
+const { existingUser } = require('../middlewares/userValidator');
 
-router.post('/register', usernameValidator, passwordValidator, checkForErrors, userController.postRegister);
-router.post('/login', userController.postLogin);
-router.get('/logout', userController.getLogout);
 router.get('/favorites', userController.getFavorites);
-router.post('/favorites/add', userController.addToFavorites);
-router.post('/favorites/remove', userController.removeFromFavorites);
-router.get('/basket', userController.getBasket);
-router.post('/basket/add', userController.addToBasket);
-router.post('/basket/remove', userController.removeFromBasket);
-router.get('/profile/:id', userController.getProfile);
-router.get('/order', userController.placeOrder);
+router.post('/favorites/add',existingUser, userController.addToFavorites);
+router.post('/favorites/remove',existingUser, userController.removeFromFavorites);
+router.get('/basket',existingUser, userController.getBasket);
+router.post('/basket/add',existingUser, userController.addToBasket);
+router.post('/basket/remove',existingUser, userController.removeFromBasket);
+router.get('/profile/:id',existingUser, userController.getProfile);
+router.get('/order',existingUser, userController.placeOrder);
 router.get('/all', userController.getUsers);
-router.post('/update', userController.updateUser);
-router.get('/checkAuth', userController.checkAuth);
+router.post('/update',isAdmin, userController.updateUser);
 
 module.exports = router;

@@ -1,50 +1,10 @@
 const User = require('../models/userModel');
 const Order = require('../models/orderModel');
 const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
 const config = require('../config/config');
 
-async function createToken(user, providedPassword) {
-  const match = await bcrypt.compare(providedPassword, user.password);
-  if (!match) { return ({ msg: 'Username or password don`t match!' }) };
-  const token = jwt.sign({ userId: user._id, username: user.username }, config.jwtSecret);
-  return token;
-}
-
-function setCookie(token, cb) {
-  return cb.cookie(config.authCookieName, token, { expires: new Date(Date.now() + 9000000), httpOnly: true });
-}
-
 module.exports = {
-  async postRegister(req, res, next) {
-    try {
-      const { username, password } = req.body;
-      const existingUser = await User.findOne({ username });
-      if (existingUser) { return res.status(409).send({ msg: 'Someone else is using that name already, please choose better one :)' }) }
-      const hash = await bcrypt.hash(password, config.saltRounds)
-      const user = new User({ username, password: hash });
-      await user.save();
-      const token = await createToken(user, password, next);
-      setCookie(token, res);
-      return res.status(201).send({ username: user.username, _id: user._id, admin: user.admin });
-    } catch (error) { res.status(507).send({ msg: error }); }
-  },
-  async postLogin(req, res, next) {
-    try {
-      const { username, password } = req.body;
-      const user = await User.findOne({ username });
-      if (!user) { return res.status(401).send({ msg: 'Wrong Username or Password!' }); }
-      const token = await createToken(user, password);
-      if (token.msg) { return res.status(401).send(token); }
-      setCookie(token, res);
-      return res.status(200).send({ username: user.username, _id: user._id, admin: user.admin });
-    } catch (error) { res.status(507).send({ msg: error }); }
-  },
-  getLogout(req, res) {
-    res.clearCookie(config.authCookieName);
-    return res.status(204).send();
-  },
-  async addToFavorites(req, res, next) {
+   async addToFavorites(req, res, next) {
     try {
       const { userId } = req.user;
       const { articleId } = req.body;
@@ -100,16 +60,6 @@ module.exports = {
       return res.status(400).send({ msg: 'User with provided ID do not exist.' })
     }
   },
-  async checkAuth(req, res, next) {
-    try {
-      const { userId } = req.user;
-      if (!userId) { return res.status(202).send(); }
-      const user = await User.findById(userId).populate(['basket', 'favorites']).lean();
-      return res.send({ username: user.username, _id: user._id, admin: user.admin })
-    } catch (error) {
-      return res.status(204).send();
-    }
-  },
   async placeOrder(req, res, next) {
     try {
       const { userId } = req.user;
@@ -127,19 +77,20 @@ module.exports = {
     try {
       const users = await User.find({}).lean();
       return res.send(users);
-    } catch (error) { return res.status(507).send({ msg: 'The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.' }); }
+    } catch (error) { return res.status(507).send({ msg: 'The method could not be performed.' }); }
   },
   async updateUser(req, res, next) {
     try {
-      const user = req.body;
-      if (user.password) {
-        user.hash = await bcrypt.hash(user.password, config.saltRounds)
-        await User.findByIdAndUpdate(user.userId, { username: user.username, password: user.hash, admin: user.admin === 'true' ? true : false })
+      const { username, password, admin, userId } = req.body;
+      if (password !== '') {
+        const hash = await bcrypt.hash(password, config.saltRounds)
+        await User.findByIdAndUpdate(userId, { username, password: hash, admin: admin === 'true' ? true : false })
         return res.status(202).send({ msg: 'Successfully updated user data.' });
       }
-      await User.findByIdAndUpdate(user.userId, { username: user.username, admin: user.admin === 'true' ? true : false });
+      await User.findByIdAndUpdate(userId, { username, admin: admin === 'true' ? true : false });
       return res.status(202).send({ msg: 'Successfully updated user data.' });
 
-    } catch (error) { return res.status(507).send({ msg: 'The method could not be performed on the resource because the server is unable to store the representation needed to successfully complete the request.' }); }
+    } catch (error) { return res.status(507).send({ msg: 'The method could not be performed.' }); }
   }
 }
+
