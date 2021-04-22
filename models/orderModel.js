@@ -4,8 +4,18 @@ const Schema = mongoose.Schema;
 
 const orderSchema = new Schema({
     creator: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+        adress: {
+            type: String,
+            require: true
+        },
+        name: {
+            type: String,
+            require: true
+        },
+        phone: {
+            type: Number,
+            require: true
+        }
     },
     totalAmount: {
         type: Number,

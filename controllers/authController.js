@@ -11,7 +11,7 @@ async function createToken(user, providedPassword) {
 }
 
 function setCookie(token, cb) {
-  return cb.cookie(config.authCookieName, token, { expires: new Date(Date.now() + 9000000), httpOnly: true });
+  return cb.cookie(config.authCookieName, token, { expires: new Date(Date.now() + 9000000), httpOnly: true, sameSite: true });
 }
 
 module.exports = {
